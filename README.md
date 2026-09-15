@@ -1,14 +1,14 @@
 # Alza Scanner
 
-Osobní nástroj pro sledování cen vybraných produktů na Alza.cz — hlídá historické minimum a pošle e-mailový alert, když cena klesne pod obvyklou hranici.
+Osobní nástroj pro sledování cen vybraných produktů na Alza.cz. Hlídá historické minimum a pošle e-mailový alert, když cena klesne pod obvyklou hranici.
 
 ![Architektura Alza Scanneru](schema.png)
 
 ## Motivace
 
-Chtěl jsem vytvořit něco, co pro mě bude užitečné v praxi. Nejdřív jsem uvažoval nad scraperem obsahu Českého rozhlasu, ale postupně mi došlo, že bych ho stejně nevyužíval. Sledování vývoje cen u produktů, který si časem plánuji koupit, mi přišlo jako mnohem praktičtější nápad — do projektu si teď můžu přidat jakýkoliv produkt a sledovat jeho cenu, dokud se nerozhodnu koupit.
+Chtěl jsem vytvořit něco, co pro mě bude užitečné v praxi. Nejdřív jsem uvažoval nad scraperem obsahu Českého rozhlasu, ale postupně mi došlo, že bych ho stejně nevyužíval. Sledování vývoje cen u produktů, který si časem plánuji koupit, mi přišlo jako mnohem praktičtější nápad. Do projektu si teď můžu přidat jakýkoliv produkt a sledovat jeho cenu, dokud se nerozhodnu koupit.
 
-Vím, že podobná řešení už existují a možná i lepší než to moje, ale bavilo mě zkusit si to postavit od nuly. Překvapilo mě, jak i na první pohled malý projekt je ve skutečnosti komplexní a kolik různých problémů se během vývoje objeví — třeba jsem musel vyzkoušet víc postupů, než se mi podařilo obejít zabezpečení stránek Alzy a spolehlivě načíst aktuální cenu.
+Vím, že podobná řešení už existují a možná i lepší než to moje, ale bavilo mě zkusit si to postavit od nuly. Překvapilo mě, jak i na první pohled malý projekt je ve skutečnosti komplexní a kolik různých problémů se během vývoje objeví. Např. jsem musel vyzkoušet víc postupů, než se mi podařilo obejít zabezpečení stránek Alzy a spolehlivě načíst aktuální cenu.
 
 ## Tech stack
 
