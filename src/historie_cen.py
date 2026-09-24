@@ -23,6 +23,8 @@ def najdi_minimum(nazev_produktu, cesta_k_souboru="data/monitoringcen.csv"):
         for radek in reader:
             if radek["nazev"] != nazev_produktu:
                 continue
+            if not radek["cena"]:
+                continue
             datum_zaznamu = datetime.strptime(radek["datum"], "%Y-%m-%d")
             if datum_zaznamu < hranicni_datum:
                 continue

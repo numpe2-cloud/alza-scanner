@@ -1,5 +1,5 @@
 import pytest
-from src.posouzeni_ceny import posouzeni_ceny
+from src.posouzeni_ceny import posouzeni_ceny, je_podezrela_cena
 
 
 def test_cena_pod_minimem():
@@ -54,3 +54,15 @@ def test_aktualni_cena_je_none():
     # Act – zavolám testovanou funkci
     vysledek = posouzeni_ceny(aktualni_cena, minimalni_cena, prah=0.9)
     assert not vysledek
+
+
+def test_podezrela_cena():
+    assert je_podezrela_cena(2199, 17490)
+
+
+def test_bezna_sleva_neni_podezrela():
+    assert not je_podezrela_cena(8000, 10000)
+
+
+def test_podezrela_cena_bez_minima():
+    assert not je_podezrela_cena(1000, None)

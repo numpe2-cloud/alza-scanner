@@ -16,35 +16,41 @@ from src.odeslani_emailu import posli_email
 CASOVY_USEK = 30
 CESTA_K_SOUBORU = "data/seznam_alertu.csv"
 
-os.makedirs("data", exist_ok=True)
 
-existuje = os.path.exists(CESTA_K_SOUBORU)
-if not existuje:
-    with open(CESTA_K_SOUBORU, "w", encoding="utf-8-sig", newline="") as soubor:
-        writer = csv.writer(soubor)
-        writer.writerow(["datum", "nazev"])
+def priprav_soubor(cesta_k_souboru):
+    slozka = os.path.dirname(cesta_k_souboru)
+    if slozka:
+        os.makedirs(slozka, exist_ok=True)
+    if not os.path.exists(cesta_k_souboru):
+        with open(cesta_k_souboru, "w", encoding="utf-8-sig", newline="") as soubor:
+            writer = csv.writer(soubor)
+            writer.writerow(["datum", "nazev"])
 
 
-def kontrola_alertu(nazev, cena, url):
-    with open(CESTA_K_SOUBORU, "r", encoding="utf-8-sig", newline="") as soubor:
+def kontrola_alertu(nazev, cena, url, cesta_k_souboru=CESTA_K_SOUBORU, podezrela=False):
+    priprav_soubor(cesta_k_souboru)
+
+    with open(cesta_k_souboru, "r", encoding="utf-8-sig", newline="") as soubor:
         reader = csv.DictReader(soubor)
         seznam_alertu = list(reader)
-        nalezeno = False
-        for radek in seznam_alertu:
-            if radek["nazev"] == nazev:
-                nalezeno = True
-                datum_alertu = datetime.strptime(radek["datum"], "%Y-%m-%d")
-                dnesni_datum = datetime.now()
-                dnesni_datum_text = datetime.now().strftime("%Y-%m-%d")
-                rozdil = (dnesni_datum - datum_alertu)
-                if rozdil >= timedelta(days=CASOVY_USEK):
+
+    dnesni_datum = datetime.now()
+    dnesni_datum_text = dnesni_datum.strftime("%Y-%m-%d")
+    nalezeno = False
+    for radek in seznam_alertu:
+        if radek["nazev"] == nazev:
+            nalezeno = True
+            datum_alertu = datetime.strptime(radek["datum"], "%Y-%m-%d")
+            rozdil = dnesni_datum - datum_alertu
+            if rozdil >= timedelta(days=CASOVY_USEK):
+                if posli_email(nazev, cena, url, podezrela):
                     radek["datum"] = dnesni_datum_text
-                    posli_email(nazev, cena, url)
-        if not nalezeno:
-            seznam_alertu.append({"datum": datetime.now().strftime("%Y-%m-%d"), "nazev": nazev})
-            posli_email(nazev, cena, url)
-        with open(CESTA_K_SOUBORU, "w", encoding="utf-8-sig", newline="") as soubor:
-            writer = csv.DictWriter(soubor, fieldnames=["datum", "nazev"])
-            writer.writeheader()
-            for radek in seznam_alertu:
-                writer.writerow(radek)
+    if not nalezeno:
+        if posli_email(nazev, cena, url, podezrela):
+            seznam_alertu.append({"datum": dnesni_datum_text, "nazev": nazev})
+
+    with open(cesta_k_souboru, "w", encoding="utf-8-sig", newline="") as soubor:
+        writer = csv.DictWriter(soubor, fieldnames=["datum", "nazev"])
+        writer.writeheader()
+        for radek in seznam_alertu:
+            writer.writerow(radek)

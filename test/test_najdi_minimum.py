@@ -58,3 +58,13 @@ def test_soubor_neexistuje(tmp_path):
     cesta = tmp_path / "monitoringcen.csv"
     vysledek = najdi_minimum("Nintendo", cesta)
     assert vysledek is None
+
+
+def test_radek_bez_ceny_se_preskoci(tmp_path):
+    datum_text = (datetime.now() - timedelta(days=10)).strftime("%Y-%m-%d")
+    obsah_csv = "datum,nazev,cena\n" \
+                f"{datum_text},tv,1000\n" \
+                f"{datum_text},tv,\n"
+    cesta = tmp_path / "test.csv"
+    cesta.write_text(obsah_csv, encoding="utf-8")
+    assert najdi_minimum("tv", cesta) == 1000

@@ -2,6 +2,7 @@
 
 Otevře si v prohlížeči web a scrapuje aktuální ceny všech položek a pak ho zavře."""
 
+import logging
 from playwright.sync_api import sync_playwright, TimeoutError
 from bs4 import BeautifulSoup
 from src.nacti_polozky import nacti_polozky
@@ -43,7 +44,10 @@ def ziskej_ceny_vsech_produktu():
                 return cena_z_html
 
             except TimeoutError:
-                print(f"Web se nenačetl správně: {url}")
+                logging.warning(f"Web se nenačetl správně: {url}")
+                return None
+            except (AttributeError, ValueError):
+                logging.warning(f"Cenu se nepodařilo přečíst: {url}")
                 return None
 
         for polozka in list_polozek:

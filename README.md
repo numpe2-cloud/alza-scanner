@@ -65,8 +65,11 @@ alza-scanner/
 │   └── report_html.py      # sestaví HTML stránku dashboardu
 ├── test/
 │   ├── test_posouzeni_ceny.py
-│   └── test_najdi_minimum.py
-├── requirements.txt        # Python knihovny
+│   ├── test_najdi_minimum.py
+│   ├── test_alerty.py
+│   └── test_uloz_cenu.py
+├── requirements.txt        # Python knihovny pro běh
+├── requirements-dev.txt    # navíc pytest a flake8 pro vývoj a testy
 ├── conftest.py             # prázdný, aby pytest našel moduly v src/
 ├── .flake8                 # pravidla kontroly stylu
 ├── .gitignore
@@ -135,9 +138,12 @@ prijemce=email_kam_chodi_alerty@example.com
 
 ## Testování
 
-Projekt má jednotkové testy (`pytest`) pro čisté funkce (`posouzeni_ceny()`, `najdi_minimum()`) a je průběžně kontrolovaný linterem `flake8`.
+Projekt má jednotkové testy (`pytest`) pro `posouzeni_ceny()`, `je_podezrela_cena()`, `najdi_minimum()`, `uloz_cenu()` a `kontrola_alertu()` a je průběžně kontrolovaný linterem `flake8`.
+
+Knihovny pro testy jsou v `requirements-dev.txt` (obsahuje i běžné závislosti):
 
 ```
+pip install -r requirements-dev.txt
 pytest
 flake8 .
 ```
