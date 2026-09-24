@@ -7,6 +7,7 @@ from matplotlib import pyplot as plt
 BARVA_POZADI = "#1c100a"
 BARVA_CARY = "#d85a30"
 BARVA_POPISKU = "#c99a80"
+OKRAJ_GRAFU = 0.15
 
 
 def vykresli_graf(zaznamy):
@@ -23,7 +24,7 @@ def vykresli_graf(zaznamy):
     # osy podle skutečného rozsahu cen, ne od nuly
     cena_min, cena_max = min(ceny), max(ceny)
     rozsah = cena_max - cena_min or cena_max * 0.05
-    ax.set_ylim(cena_min - rozsah * 0.15, cena_max + rozsah * 0.15)
+    ax.set_ylim(cena_min - rozsah * OKRAJ_GRAFU, cena_max + rozsah * OKRAJ_GRAFU)
 
     ax.tick_params(axis="x", colors=BARVA_POPISKU, rotation=45)
     ax.tick_params(axis="y", colors=BARVA_POPISKU)

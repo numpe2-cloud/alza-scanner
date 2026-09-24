@@ -1,6 +1,9 @@
 """Připraví html stránku pro dashboard."""
 
 PRAH_NAD_MINIMEM = 0  # nad tuto hodnotu (v %) je cena "dražší než minimum" = červená
+BARVA_POZADI = "#1c100a"
+BARVA_KARTY = "#26160e"
+BARVA_TEXTU = "#f3e9e0"
 
 
 def sestav_html(souhrn, grafy):
@@ -36,16 +39,16 @@ def sestav_html(souhrn, grafy):
 <meta charset="UTF-8">
 <title>Přehled cen</title>
 <style>
-  body {{ font-family: -apple-system, Arial, sans-serif; background: #1c100a; color: #f3e9e0; margin: 0; padding: 2rem; }}
+  body {{ font-family: -apple-system, Arial, sans-serif; background: {BARVA_POZADI}; color: {BARVA_TEXTU}; margin: 0; padding: 2rem; }}
   h1 {{ display: inline-block; font-size: 26px; font-weight: 500; margin: 0; border-bottom: 2px solid #d85a30; padding-bottom: 8px; }}
-  table {{ width: 70%; max-width: 640px; margin: 0 auto 2.5rem; border-collapse: collapse; background: #26160e; border-radius: 8px; overflow: hidden; }}
+  table {{ width: 70%; max-width: 640px; margin: 0 auto 2.5rem; border-collapse: collapse; background: {BARVA_KARTY}; border-radius: 8px; overflow: hidden; }}
   th, td {{ text-align: center; padding: 8px 12px; border-bottom: 1px solid #3a2418; font-size: 14px; }}
   th {{ background: #301c11; font-weight: 500; font-size: 12px; color: #c99a80; }}
-  td {{ color: #f3e9e0; }}
+  td {{ color: {BARVA_TEXTU}; }}
   td.dobra-cena {{ background: #173404; color: #97c459; font-weight: 500; }}
   td.draha-cena {{ background: #501313; color: #f09595; font-weight: 500; }}
   .grafy {{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; max-width: 640px; margin: 0 auto; }}
-  .graf-karta {{ background: #26160e; border-radius: 8px; padding: 1rem; }}
+  .graf-karta {{ background: {BARVA_KARTY}; border-radius: 8px; padding: 1rem; }}
   .graf-karta h3 {{ margin: 0 0 0.5rem; font-size: 15px; font-weight: 500; text-align: center; color: #f8e6d3; }}
   .graf-karta img {{ width: 100%; height: auto; display: block; }}
 </style>

@@ -2,9 +2,12 @@
 
 Otevře si v prohlížeči web a scrapuje aktuální ceny všech položek a pak ho zavře."""
 
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, TimeoutError
 from bs4 import BeautifulSoup
 from src.nacti_polozky import nacti_polozky
+
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0"
+TRIDA_CENY = "js-price-box__primary-price__value"
 
 
 def ziskej_ceny_vsech_produktu():
@@ -13,36 +16,39 @@ def ziskej_ceny_vsech_produktu():
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=False)
 
-        page = browser.new_page(
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:153.0) "
-            "Gecko/20100101 Firefox/153.0"
-        )
+        page = browser.new_page(user_agent=USER_AGENT)
 
         def ziskej_cenu(page, url):
-            page.goto(url, wait_until="domcontentloaded")
+            try:
+                page.goto(url, wait_until="domcontentloaded")
 
-            # Počkáme, až se objeví cena
-            page.wait_for_selector(".js-price-box__primary-price__value")
+                # Počkáme, až se objeví cena
+                page.wait_for_selector(f".{TRIDA_CENY}")
 
-            # Vezmeme aktuální HTML
-            html = page.content()
+                # Vezmeme aktuální HTML
+                html = page.content()
 
-            # BeautifulSoup
-            strom = BeautifulSoup(html, "html.parser")
-            stranka = strom.find(
-                "span",
-                class_="js-price-box__primary-price__value"
-            )
+                # BeautifulSoup
+                strom = BeautifulSoup(html, "html.parser")
+                stranka = strom.find(
+                    "span",
+                    class_=TRIDA_CENY
+                )
 
-            text = stranka.get_text(strip=True)
-            text1 = text.replace("\xa0", "")
-            text2 = text1.replace("-", "")
-            text3 = text2.replace(",", "")
-            cena_z_html = float(text3)
-            return cena_z_html
+                text = stranka.get_text(strip=True)
+                text1 = text.replace("\xa0", "")
+                text2 = text1.replace("-", "")
+                text3 = text2.replace(",", "")
+                cena_z_html = float(text3)
+                return cena_z_html
+
+            except TimeoutError:
+                print(f"Web se nenačetl správně: {url}")
+                return None
 
         for polozka in list_polozek:
             cena = ziskej_cenu(page, polozka["url"])
             vysledky.append({"nazev": polozka["nazev"], "url": polozka["url"], "cena": cena})
+
         browser.close()
     return vysledky

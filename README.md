@@ -1,12 +1,15 @@
 # Alza Scanner
 
+> Toto je Windows verze projektu — běží lokálně a pravidelně ji spouští Windows Task Scheduler.
+> Verze s Dockerem a CI/CD pipeline přes GitHub Actions: [alza-scanner-linux](https://github.com/numpe2-cloud/alza-scanner-linux)
+
 Osobní nástroj pro sledování cen vybraných produktů na Alza.cz. Hlídá historické minimum a pošle e-mailový alert, když cena klesne pod obvyklou hranici.
 
 ![Architektura Alza Scanneru](schema.png)
 
 ## Motivace
 
-Chtěl jsem vytvořit něco, co pro mě bude užitečné v praxi. Nejdřív jsem uvažoval nad scraperem obsahu Českého rozhlasu, ale postupně mi došlo, že bych ho stejně nevyužíval. Sledování vývoje cen u produktů, který si časem plánuji koupit, mi přišlo jako mnohem praktičtější nápad. Do projektu si teď můžu přidat jakýkoliv produkt a sledovat jeho cenu, dokud se nerozhodnu koupit.
+Chtěl jsem vytvořit něco, co pro mě bude užitečné v praxi. Nejdřív jsem uvažoval nad scraperem obsahu Českého rozhlasu, ale postupně mi došlo, že bych ho stejně nevyužíval. Sledování vývoje cen u produktů, které si časem plánuji koupit, mi přišlo jako mnohem praktičtější nápad. Do projektu si teď můžu přidat jakýkoliv produkt a sledovat jeho cenu, dokud se nerozhodnu koupit.
 
 Vím, že podobná řešení už existují a možná i lepší než to moje, ale bavilo mě zkusit si to postavit od nuly. Překvapilo mě, jak i na první pohled malý projekt je ve skutečnosti komplexní a kolik různých problémů se během vývoje objeví. Např. jsem musel vyzkoušet víc postupů, než se mi podařilo obejít zabezpečení stránek Alzy a spolehlivě načíst aktuální cenu.
 
@@ -32,11 +35,54 @@ Projekt má tři hlavní části:
 
 Podrobné schéma toků mezi jednotlivými soubory je výše.
 
+### Spouštění
+
+| Vstupní bod | Jak se spouští |
+|---|---|
+| `kontrola_ceny.py` | automaticky přes Windows Task Scheduler, každý den |
+| `ulozeni_ceny.py` | automaticky přes Windows Task Scheduler, každých 14 dní |
+| `vytvor_report.py` | ručně, když se chci podívat na dashboard: `python vytvor_report.py` |
+
+### Struktura projektu
+
+```
+alza-scanner/
+├── kontrola_ceny.py        # VSTUPNÍ BOD – porovná ceny s minimem, pošle alert
+├── ulozeni_ceny.py         # VSTUPNÍ BOD – uloží aktuální ceny do historie
+├── vytvor_report.py        # VSTUPNÍ BOD – vytvoří HTML dashboard s grafy
+├── config/
+│   └── polozky.yaml        # seznam sledovaných produktů (jediné místo, kde se mění)
+├── src/
+│   ├── scraper.py          # načte aktuální ceny z Alza.cz (Playwright)
+│   ├── nacti_polozky.py    # načte produkty z polozky.yaml
+│   ├── uloz_cenu.py        # připíše cenu do monitoringcen.csv
+│   ├── historie_cen.py     # najde historické minimum za posledních 182 dní
+│   ├── posouzeni_ceny.py   # rozhodne, jestli je cena výrazně pod minimem
+│   ├── alerty.py           # hlídá 30denní pauzu mezi alerty na stejný produkt
+│   ├── odeslani_emailu.py  # odešle e-mail přes Gmail (smtplib)
+│   ├── report_data.py      # připraví data pro dashboard
+│   ├── grafy_cen.py        # vykreslí grafy vývoje cen (matplotlib)
+│   └── report_html.py      # sestaví HTML stránku dashboardu
+├── test/
+│   ├── test_posouzeni_ceny.py
+│   └── test_najdi_minimum.py
+├── requirements.txt        # Python knihovny
+├── conftest.py             # prázdný, aby pytest našel moduly v src/
+├── .flake8                 # pravidla kontroly stylu
+├── .gitignore
+└── schema.png              # diagram toku dat
+```
+
+## Předpoklady
+
+- Windows s WSL (Ubuntu) — venv i Playwright běží uvnitř WSL
+- Python 3.14
+
 ## Instalace a spuštění
 
 1. Naklonuj repozitář:
    ```
-   git clone <URL repozitáře>
+   git clone https://github.com/numpe2-cloud/alza-scanner
    cd alza-scanner
    ```
 
@@ -44,10 +90,9 @@ Podrobné schéma toků mezi jednotlivými soubory je výše.
    ```
    python -m venv .venv
    ```
-   Aktivace (podle systému):
+   Aktivace:
    ```
-   source .venv/bin/activate      # Linux/WSL/Mac
-   .venv\Scripts\activate         # Windows
+   source .venv/bin/activate      # Linux/WSL
    ```
 
 3. Nainstaluj závislosti:
@@ -56,7 +101,7 @@ Podrobné schéma toků mezi jednotlivými soubory je výše.
    playwright install
    ```
 
-4. Nastav sledované produkty v `polozky.yaml` podle existujícího vzoru.
+4. Nastav sledované produkty v `config/polozky.yaml` podle existujícího vzoru.
 
 5. Vytvoř soubor `.env` v kořeni projektu s vlastními přihlašovacími údaji k e-mailu (viz sekce Proměnné prostředí níže).
 
@@ -68,6 +113,11 @@ Podrobné schéma toků mezi jednotlivými soubory je výše.
    ```
    python kontrola_ceny.py
    ```
+   Nakonec vytvoř dashboard:
+   ```
+   python vytvor_report.py
+   ```
+   Zkontroluj, že se dashboard vytvořil, a otevři `report.html` z kořene projektu v prohlížeči.
 
 7. Pro pravidelné automatické spouštění (např. jednou denně) nastav podle svého prostředí Windows Task Scheduler nebo cron.
 
@@ -91,6 +141,14 @@ Projekt má jednotkové testy (`pytest`) pro čisté funkce (`posouzeni_ceny()`,
 pytest
 flake8 .
 ```
+
+## Proč takhle
+
+- **CSV místo databáze** — CSV jsem znal a na pár produktů s několika záznamy týdně úplně stačí. Soubor se dá otevřít v čemkoliv a nic dalšího se nemusí instalovat. Při velkém objemu dat by bylo CSV pomalé, tady to ale nehrozí.
+- **Dlouhý formát `datum,nazev,cena`** — každé uložení ceny je nový řádek, takže přidání dalšího produktu nemění strukturu souboru. V širokém formátu (sloupec pro každý produkt) by každý nový produkt znamenal nový sloupec. Daní je, že soubor roste o řádek za každý produkt při každém uložení.
+- **Playwright s `headless=False`** — Alza blokuje jednoduché stahování stránky (`requests`) i prohlížeč bez okna (Cloudflare ochrana). Funkční bylo až spuštění prohlížeče s oknem.
+- **`polozky.yaml` jako jediné místo pravdy** — o tom, které produkty se sledují a zobrazují v dashboardu, rozhoduje jen tenhle soubor. Původně bral dashboard produkty z historie v CSV, takže v něm zůstával i produkt, který jsem už nesledoval. Teď stačí upravit `polozky.yaml` a historie v CSV zůstane zachovaná.
+- **Windows Task Scheduler místo serveru** — pro dlouhodobé sledování cen by musel server běžet měsíce. Nedávalo mi smysl kvůli tomu nechávat zapnutý další počítač, když stejnou práci dělá plánovač úloh na počítači, který běží tak jako tak.
 
 ## Etická poznámka ke scrapingu
 

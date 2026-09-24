@@ -45,3 +45,12 @@ def test_spatny_typ_ceny():
         minimalni_cena = 1600
         # Act – zavolám testovanou funkci
         posouzeni_ceny(aktualni_cena, minimalni_cena, prah=0.9)
+
+
+def test_aktualni_cena_je_none():
+    # Arrange – připravím si vstupy
+    aktualni_cena = None
+    minimalni_cena = 1000
+    # Act – zavolám testovanou funkci
+    vysledek = posouzeni_ceny(aktualni_cena, minimalni_cena, prah=0.9)
+    assert not vysledek

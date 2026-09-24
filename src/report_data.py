@@ -3,13 +3,25 @@
 import csv
 from collections import defaultdict
 
+from src.nacti_polozky import nacti_polozky
+
 
 def nacti_historii(cesta="data/monitoringcen.csv"):
-    """Načte CSV (datum,nazev,cena) a vrátí {nazev: [(datum, cena), ...]}, seřazené podle data."""
+    """Načte CSV (datum,nazev,cena) a vrátí {nazev: [(datum, cena), ...]}, seřazené podle data.
+
+    Do výsledku pustí jen produkty, které jsou aktuálně v polozky.yaml.
+    Historie vyřazených produktů v CSV zůstává, jen se nezobrazí.
+    """
+    sledovane_nazvy = set()                              # množina názvů, které se mají zobrazit
+    for polozka in nacti_polozky():
+        sledovane_nazvy.add(polozka["nazev"])
+
     historie = defaultdict(list)
     with open(cesta, newline="", encoding="utf-8-sig") as soubor:
         ctecka = csv.DictReader(soubor)
         for radek in ctecka:
+            if radek["nazev"] not in sledovane_nazvy:   # produkt už se nesleduje
+                continue                                # přeskoč řádek, jdi na další
             historie[radek["nazev"]].append((radek["datum"], float(radek["cena"])))
     for nazev in historie:
         historie[nazev].sort(key=lambda zaznam: zaznam[0])

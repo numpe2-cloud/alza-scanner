@@ -52,3 +52,9 @@ def test_najdi_minimum_chybejici_produkt(tmp_path):
     # Act – zavolám testovanou funkci
     vysledek = najdi_minimum(nazev_produktu, cesta)
     assert vysledek is None
+
+
+def test_soubor_neexistuje(tmp_path):
+    cesta = tmp_path / "monitoringcen.csv"
+    vysledek = najdi_minimum("Nintendo", cesta)
+    assert vysledek is None
